@@ -62,7 +62,7 @@ public class InfiniteInventoryOverlay {
     // ---- adjustable panel width (percent of the original width), saved in the config folder ----
     private static final int MIN_WIDTH_PERCENT  = 30;
     private static final int WIDTH_PERCENT_STEP = 10;
-    private static final int MIN_PANEL_PX       = 80;
+    private static final int MIN_PANEL_PX       = 120;
     private static final String CONFIG_FILE     = "infinite-inventory-panel.txt";
     private static int widthPercent = loadWidthPercent();
 
@@ -97,7 +97,16 @@ public class InfiniteInventoryOverlay {
         if (newValue == widthPercent) return;
         widthPercent = newValue;
         saveWidthPercent();
+        computeLayout();
         buildWidgets();
+    }
+
+    /** The panel stays glued to the right screen edge; only its left edge moves. */
+    private static void computeLayout() {
+        int fullStartX = (sw / 2) + 93;
+        int fullWidth  = sw - fullStartX - 5;
+        panelW = Math.max(Math.min(fullWidth, MIN_PANEL_PX), fullWidth * widthPercent / 100);
+        startX = sw - 5 - panelW;
     }
 
     /** (Re)creates all widgets for the current startX / panelW. */
@@ -129,17 +138,25 @@ public class InfiniteInventoryOverlay {
         nextPageBtn = Button.builder(Component.literal(">"), b -> {})
                 .pos(startX + panelW - 20, 10).size(20, 14).build();
 
-        // control row above the search row: [-] [+] [ALL]
+        // control row above the search row: [ALL] [-] [+], aligned to the right edge
+        // so the buttons stay where they are while the width changes
+        int plusX  = startX + panelW - 14;
+        int minusX = plusX - 16;
+        int allX   = minusX - 48;
         widthMinusBtn = Button.builder(Component.literal("-"), b -> {})
-                .pos(startX, controlY).size(14, 14).build();
+                .pos(minusX, controlY).size(14, 14).build();
         widthPlusBtn  = Button.builder(Component.literal("+"), b -> {})
-                .pos(startX + 16, controlY).size(14, 14).build();
+                .pos(plusX, controlY).size(14, 14).build();
         allBtn        = Button.builder(Component.literal(extractAllMode ? "ALL:ON" : "ALL:OFF"), b -> {})
-                .pos(startX + 32, controlY).size(46, 14).build();
+                .pos(allX, controlY).size(46, 14).build();
     }
 
     private static int visibleRows() {
         return Math.max(1, (sh - 72) / 18);
+    }
+
+    public static boolean isSearchFocused() {
+        return searchBox != null && searchBox.isFocused();
     }
 
     public static boolean onCharTyped(CharacterEvent event) {
@@ -155,16 +172,13 @@ public class InfiniteInventoryOverlay {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (!(screen instanceof InventoryScreen)) return;
 
-            int fullStartX = (scaledWidth / 2) + 93;
-            int fullWidth  = scaledWidth - fullStartX - 5;
+            int fullWidth = scaledWidth - ((scaledWidth / 2) + 93) - 5;
             if (fullWidth < 50) return;
 
-            mc     = client;
-            sw     = scaledWidth;
-            sh     = scaledHeight;
-            startX = fullStartX;
-            panelW = Math.max(Math.min(fullWidth, MIN_PANEL_PX), fullWidth * widthPercent / 100);
-
+            mc = client;
+            sw = scaledWidth;
+            sh = scaledHeight;
+            computeLayout();
             buildWidgets();
 
             // MOUSE CLICK
