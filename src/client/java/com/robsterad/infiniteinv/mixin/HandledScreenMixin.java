@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -23,21 +22,7 @@ public abstract class HandledScreenMixin {
 
     @Shadow protected Slot hoveredSlot;
 
-    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    private void interceptShiftClick(MouseButtonEvent event, boolean bl, CallbackInfoReturnable<Boolean> cir) {
-        if ((Object) this instanceof InventoryScreen) {
-            if (!InfiniteInventoryOverlay.panelVisible) return;
-
-            if ((InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), InputConstants.KEY_LSHIFT)
-                    || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), InputConstants.KEY_RSHIFT))
-                    && event.button() == 0) {
-                if (this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
-                    ClientPlayNetworking.send(new InsertItemPayload(this.hoveredSlot.index));
-                    cir.setReturnValue(true);
-                }
-            }
-        }
-    }
+    // Shift + left click is no longer intercepted (vanilla quick-move applies again).
 
     /**
      * Shift + F: move the stack under the mouse into the infinite inventory.
