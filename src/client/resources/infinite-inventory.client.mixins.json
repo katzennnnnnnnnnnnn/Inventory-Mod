@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "com.robsterad.infiniteinv.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"HandledScreenMixin",
+		"ScreenMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
