@@ -10,8 +10,14 @@ import net.minecraft.world.item.ItemStack;
 /**
  * @param stackToMatch the item type to take out of the infinite inventory
  * @param all          false = one stack (original behaviour), true = as many as fit into the player's inventory
+ * @param auto         true = automatic restock (e.g. for the Litematica printer): one stack at most,
+ *                     and whatever does not fit is put back instead of being dropped on the ground
  */
-public record ExtractItemPayload(ItemStack stackToMatch, boolean all) implements CustomPacketPayload {
+public record ExtractItemPayload(ItemStack stackToMatch, boolean all, boolean auto) implements CustomPacketPayload {
+
+    public ExtractItemPayload(ItemStack stackToMatch, boolean all) {
+        this(stackToMatch, all, false);
+    }
 
     public static final CustomPacketPayload.Type<ExtractItemPayload> ID =
             new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("infinite-inventory", "extract_item"));
@@ -24,6 +30,7 @@ public record ExtractItemPayload(ItemStack stackToMatch, boolean all) implements
     public static final StreamCodec<RegistryFriendlyByteBuf, ExtractItemPayload> CODEC = StreamCodec.composite(
             ItemStack.STREAM_CODEC, ExtractItemPayload::stackToMatch,
             ByteBufCodecs.BOOL, ExtractItemPayload::all,
+            ByteBufCodecs.BOOL, ExtractItemPayload::auto,
             ExtractItemPayload::new
     );
 }

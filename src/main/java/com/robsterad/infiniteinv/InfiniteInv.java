@@ -76,6 +76,8 @@ public class InfiniteInv implements ModInitializer {
                 if (key != null && inv.getAllItems().containsKey(key)) {
                     int maxTake = requestedStack.getMaxStackSize();
                     boolean extractAll = payload.all();
+                    // "all" and automatic restocks never drop leftovers on the ground
+                    boolean keepLeftover = extractAll || payload.auto();
                     boolean removedAny = false;
 
                     while (true) {
@@ -85,7 +87,7 @@ public class InfiniteInv implements ModInitializer {
 
                         player.getInventory().add(extracted);
                         if (extracted.getCount() > 0) {
-                            if (extractAll) {
+                            if (keepLeftover) {
                                 // inventory is full: put the remainder back instead of dropping it on the ground
                                 inv.addStack(extracted);
                             } else {
